@@ -55,9 +55,6 @@ test('Realizar o fluxo de compra da mochila', async ({page}) => {
 
 
 
-
-
-
     // Espera de 1 segundo
     await page.waitForTimeout(1000) // Mal visto
 
