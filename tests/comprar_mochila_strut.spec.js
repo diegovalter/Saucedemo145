@@ -2,26 +2,37 @@ import { test, expect } from '../utils/logger.js'
 import { snap } from '../utils/snap.js'
 
 // Funções de apoio
-async function login_step(page, testInfo){
+async function login_step(page){
     await page.goto('/')
+
 
     await expect(page).toHaveURL('/') // Verificação clássica
     await expect(page.locator('[data-test="login-button"]')).toHaveText('Login')
-            
-    await snap(page, testInfo, 'TC001-Passo01-Home')   
+               
 }
 
-async function success_login_step(page, testInfo){
+async function success_login_fill_step(page){
     await page.locator('[data-test="username"]').fill('standard_user')
     await page.locator('[data-test="password"]').fill('secret_sauce')
-    await snap(page, testInfo, 'TC001-Passo02A-Login_Preenchido')
+   
+}
+
+async function success_login_click_step(page){
     await page.locator('[data-test="login-button"]').click()
 
     await expect(page).toHaveURL(/inventory\.html/)
     await expect(page.locator('[data-test="title"]')).toHaveText('Products')
     
-    await snap(page, testInfo, 'TC001-Passo02B-Inventory')
+}
 
+async function add_to_cart_step(page){
+            await page.locator('[data-test="shopping-cart-link"]').click()
+            await expect(page).toHaveURL(/cart\.html/)
+            await expect(page.locator('[data-test="title"]')).toHaveText('Your Cart')
+            // await expect(page.locator('[data-test="title"]')).toContainText("Cart")
+            await expect(page.locator('[data-test="item-quantity"]')).toHaveText("1")
+            await expect(page.locator('[data-test="inventory-item-name"]')).toHaveText("Sauce Labs Backpack")
+            await expect(page.locator('[data-test="inventory-item-price"]')).toHaveText("$29.99")
 }
 
 test.describe('SauceDemo - fluxo principal de compra', () => {
@@ -31,13 +42,16 @@ test.describe('SauceDemo - fluxo principal de compra', () => {
         
         // Inicio do Passo 1
         await test.step('Acessar SauceDemo.com', async () => {
-            await login_step(page, testInfo)
+            await login_step(page)
+            await snap(page, testInfo, 'TC001-Passo01-Home')
         }) // fim do passo 1
 
         // Inicio do passo 2
         await test.step('Login com Sucesso', async () => {
-            success_login_step(page, testInfo)
-           
+           await success_login_fill_step(page)
+           await snap(page, testInfo, 'TC001-Passo02A-Login_Preenchido')
+           await success_login_click_step(page)
+           await snap(page, testInfo, 'TC001-Passo02B-Inventory')
 
         }) // fim do passo 2
 
@@ -51,13 +65,7 @@ test.describe('SauceDemo - fluxo principal de compra', () => {
         }) // fim do passo 3
 
         await test.step('Ir para o carrinho', async () => {
-            await page.locator('[data-test="shopping-cart-link"]').click()
-            await expect(page).toHaveURL(/cart\.html/)
-            await expect(page.locator('[data-test="title"]')).toHaveText('Your Cart')
-            // await expect(page.locator('[data-test="title"]')).toContainText("Cart")
-            await expect(page.locator('[data-test="item-quantity"]')).toHaveText("1")
-            await expect(page.locator('[data-test="inventory-item-name"]')).toHaveText("Sauce Labs Backpack")
-            await expect(page.locator('[data-test="inventory-item-price"]')).toHaveText("$29.99")
+            await add_to_cart_step(page)
             await snap(page, testInfo, 'TC001-Passo04-Carrinho-Conferido')
         })  
 
@@ -68,23 +76,49 @@ test.describe('SauceDemo - fluxo principal de compra', () => {
 
          // Inicio do Passo 1
         await test.step('Acessar SauceDemo.com', async () => {
-            await login_step(page, testInfo)            
+            await login_step(page) 
+            await snap(page, testInfo, 'TC002-Passo01-Home')           
         }) // fim do passo 1
  
         // Inicio do passo 2
         await test.step('Login com Sucesso', async () => {
-            success_login_step(page, testInfo)
+           await success_login_fill_step(page)
+           await snap(page, testInfo, 'TC002-Passo02A-Login_Preenchido')
+           await success_login_click_step(page)
+           await snap(page, testInfo, 'TC002-Passo02B-Inventory')
         }) // fim do passo 2
 
-                // Inicio do passo 3
-        await test.step('Adicionar mochila no carrinho', async () => {
-            const seletor_mochila = page.locator('.inventory_item').filter({ hasText: /Backpack/ })
-            await seletor_mochila.getByRole('link', { hasText: /Bacpack/ }).click()
+        // Inicio do passo 3
+        await test.step('Abrir pagina da mochila e dicionar no carrinho', async () => {
+            // Parte 3.1 - Abrir a parina da mochila
+            // Ação
+            //const seletor_mochila = page.locator('.inventory_item').filter({ hasText: /Backpack/ })
+            //await seletor_mochila.getByRole('button', { name: /Add to cart/ }).click()
+            await page.locator('[data-test="item-4-title-link"]').click()
+            // Verificações
+            await expect(page).toHaveURL(/inventory-item\.html/)   // url
+            await expect(page).toHaveTitle('Swag Labs')             // title (guia)
+            await expect(page.locator('[data-test="back-to-products"]')).toHaveText('Back to products')
 
+            await expect(page.locator('[data-test="inventory-item-name"]')).toHaveText("Sauce Labs Backpack")
+            await expect(page.locator('[data-test="inventory-item-price"]')).toHaveText("$29.99")
+
+            
+            await snap(page, testInfo, 'TC002-Passo03_1-Inventory_Item')
+
+            // Parte 3.2 - Adcionar produto no carrinho
+            // Ação
+            await page.locator('[data-test="add-to-cart"]').click()
+            // Verificações          
             await expect(page.locator('.shopping_cart_badge')).toHaveText('1')
-            await snap(page, testInfo, 'TC001-Passo03-Mochila-Adicionada')
+            await snap(page, testInfo, 'TC001-Passo03_2-Mochila-Adicionada')
         }) // fim do passo 3
 
-
-        }) // fim do teset 2 
+        await test.step('Ir para o carrinho', async () => {
+            await add_to_cart_step(page)
+            await snap(page, testInfo, 'TC002-Passo04-Carrinho-Conferido')
+        })
+       
+ 
+    }) // fim do test 2
 }) // fim do describe
