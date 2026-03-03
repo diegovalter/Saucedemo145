@@ -1,4 +1,4 @@
-🛒 Automação SauceDemo - Fluxo de Compra com Observabilidade
+# 🛒 Automação SauceDemo - Fluxo de Compra com Observabilidade
 
 Este projeto automatiza o fluxo de compra da mochila (**Sauce Labs Backpack**) no site **SauceDemo**. Diferente de automações convencionais, este repositório implementa um motor de **Log Customizado** e **Gestão de Evidências (Screenshots)** organizada por carimbos de tempo e integração com CI.
 
